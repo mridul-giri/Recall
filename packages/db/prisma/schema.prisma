@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String  @id @default(uuid())
+  telegramId String  @unique
+  name       String
+  userName   String?
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  contents Content[]
+  tags     Tag[]
+}
+
+model Content {
+  id          String      @id @default(uuid())
+  userId      String
+  contentType ContentType
+  isFavorite  Boolean     @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  link     Link?
+  image    Image?
+  video    Video?
+  document Document?
+
+  tags ContentTag[]
+
+  @@index([userId, contentType])
+}
+
+model Link {
+  id        String @id @default(uuid())
+  contentId String @unique
+
+  url         String
+  provider    String?
+  title       String?
+  description String?
+
+  content Content @relation(fields: [contentId], references: [id])
+}
+
+model Image {
+  id        String @id @default(uuid())
+  contentId String @unique
+
+  size        Int
+  extension   String
+  name        String
+  title       String?
+  description String?
+
+  content Content @relation(fields: [contentId], references: [id])
+}
+
+model Video {
+  id        String @id @default(uuid())
+  contentId String @unique
+
+  size        Int
+  mimeType    String
+  name        String
+  title       String?
+  description String?
+
+  content Content @relation(fields: [contentId], references: [id])
+}
+
+model Document {
+  id        String @id @default(uuid())
+  contentId String @unique
+
+  size        Int
+  mimeType    String
+  name        String
+  title       String?
+  description String?
+
+  content Content @relation(fields: [contentId], references: [id])
+}
+
+model Tag {
+  id     String @id @default(uuid())
+  userId String
+  name   String
+
+  user User @relation(fields: [userId], references: [id])
+
+  contents ContentTag[]
+
+  @@unique([userId, name])
+}
+
+model ContentTag {
+  contentId String
+  tagId     String
+
+  content Content @relation(fields: [contentId], references: [id])
+  tag     Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([contentId, tagId])
+}
+
+enum ContentType {
+  Link
+  Image
+  Video
+  Document
+}
