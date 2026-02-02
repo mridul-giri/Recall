@@ -1,5 +1,6 @@
 import { Context } from "grammy";
-import { BotRepository } from "../../repository/botRepository.js";
+import { BotRepository } from "../../services/botService.js";
+import BotReplies from "../../utils/constants.js";
 
 const handleStart = async (ctx: Context) => {
   try {
@@ -15,12 +16,12 @@ const handleStart = async (ctx: Context) => {
     const user = await BotRepository.createOrUpdateUser(tgId, name, userName);
 
     if (!user) {
-      console.error("Failed to create/update user");
-      await ctx.reply("Failed to create/update user, Try again!");
+      console.error("Failed to create/update user account");
+      await ctx.reply(BotReplies.USER_CREATE_OR_UPDATE_FAILED);
       return;
     }
-    await ctx.reply("Welcome to the Recall");
-    console.log("User created/updated successfully");
+    await ctx.reply(BotReplies.WELCOME);
+    console.log("User account created/updated successfully");
   } catch (error) {
     console.error(error);
   }

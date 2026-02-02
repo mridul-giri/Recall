@@ -1,19 +1,15 @@
-const extractAndNormalizeUrl = (
-  text: string,
-  offset: number,
-  length: number,
-) => {
+const parseLinkEntity = (text: string, offset: number, length: number) => {
   let raw = text.slice(offset, offset + length);
   if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
     raw = "https://" + raw;
   }
   try {
     const url = new URL(raw);
-    return url.toString();
+    return { url: url.toString(), provider: url.hostname };
   } catch (error) {
     console.error(error);
     return null;
   }
 };
 
-export default extractAndNormalizeUrl;
+export default parseLinkEntity;
