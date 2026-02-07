@@ -33,7 +33,7 @@ model Content {
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   link     Link?
   image    Image?
@@ -54,7 +54,7 @@ model Link {
   title       String?
   description String?
 
-  content Content @relation(fields: [contentId], references: [id])
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Image {
@@ -63,11 +63,10 @@ model Image {
 
   size        Int
   extension   String
-  name        String
   title       String?
   description String?
 
-  content Content @relation(fields: [contentId], references: [id])
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Video {
@@ -76,11 +75,10 @@ model Video {
 
   size        Int
   mimeType    String
-  name        String
   title       String?
   description String?
 
-  content Content @relation(fields: [contentId], references: [id])
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Document {
@@ -89,11 +87,11 @@ model Document {
 
   size        Int
   mimeType    String
-  name        String
+  fileName    String
   title       String?
   description String?
 
-  content Content @relation(fields: [contentId], references: [id])
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
 model Tag {
@@ -101,7 +99,7 @@ model Tag {
   userId String
   name   String
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   contents ContentTag[]
 
@@ -112,15 +110,15 @@ model ContentTag {
   contentId String
   tagId     String
 
-  content Content @relation(fields: [contentId], references: [id])
-  tag     Tag     @relation(fields: [tagId], references: [id])
+  content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([contentId, tagId])
 }
 
 enum ContentType {
-  Link
-  Image
-  Video
-  Document
+  link
+  image
+  video
+  document
 }

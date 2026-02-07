@@ -1,1 +1,0 @@
-{"root":["./src/index.ts","./src/bot/bot.ts","./src/bot/handlers/handleStart.ts","./src/bot/handlers/handleText.ts","./src/bot/handlers/handleUrl.ts","./src/config/config.ts","./src/repository/botRepository.ts"],"version":"5.9.3"}

@@ -7,7 +7,7 @@ const parseLinkEntity = (text: string, offset: number, length: number) => {
     const url = new URL(raw);
     return { url: url.toString(), provider: url.hostname };
   } catch (error) {
-    console.error(error);
+    console.warn(`Failed to parse URL: ${raw}`);
     return null;
   }
 };
