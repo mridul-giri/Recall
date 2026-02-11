@@ -1,6 +1,6 @@
 import axios from "axios";
 import { Context } from "grammy";
-import { config } from "../config/config.js";
+import { config } from "../utils/config.js";
 import { BotError } from "./botError.js";
 import BotReplies from "./constants.js";
 
@@ -13,7 +13,7 @@ const downloadTelegramFile = async (ctx: Context) => {
         responseType: "arraybuffer",
       },
     );
-    const fileBuffer = Buffer.from(fileResponse.data);
+    const fileBuffer = fileResponse.data;
     const parts = file.file_path?.split(".") || [];
     let extension;
     if (parts.length > 1) {

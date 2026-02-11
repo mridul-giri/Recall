@@ -9,11 +9,8 @@ function getConfig() {
     BOT_TOKEN: z.string(),
     DOMAIN: z.string(),
     WEBHOOK_PORT: z.number().default(5000),
-    ACCESS_KEY: z.string(),
-    SECRET_ACCESS_KEY: z.string(),
-    BUCKET_REGION: z.string(),
-    BUCKET_KEY: z.string(),
-    BUCKET_NAME: z.string(),
+    API_BASE_URL: z.string(),
+    BOT_INTERNAL_TOKEN: z.string(),
   });
 }
 

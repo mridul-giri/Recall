@@ -11,10 +11,15 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.982.0",
+    "@repo/db": "workspace:*",
     "@repo/ui": "workspace:*",
+    "dotenv": "^17.2.3",
     "next": "16.1.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "znv": "^0.5.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

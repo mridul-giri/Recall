@@ -1,0 +1,22 @@
+import { parseEnv } from "znv";
+import z from "zod";
+import * as dotenv from "dotenv";
+
+dotenv.config();
+
+function getConfig() {
+  return parseEnv(process.env, {
+    DATABASE_URL: z.string(),
+    ACCESS_KEY: z.string(),
+    SECRET_ACCESS_KEY: z.string(),
+    BUCKET_REGION: z.string(),
+    BUCKET_KEY: z.string(),
+    BUCKET_NAME: z.string(),
+    BOT_INTERNAL_TOKEN: z.string(),
+    NODE_ENV: z.enum(["development", "production"]).default("development"),
+  });
+}
+
+export type Config = ReturnType<typeof getConfig>;
+
+export const config: Config = getConfig();

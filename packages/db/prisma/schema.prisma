@@ -8,24 +8,55 @@ datasource db {
 }
 
 model User {
-  id         String  @id @default(uuid())
-  telegramId String  @unique
-  name       String
-  userName   String?
-  isActive   Boolean @default(true)
+  id       String  @id @default(uuid())
+  isActive Boolean @default(true)
+  name     String
+  userName String?
+  email    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  contents Content[]
-  tags     Tag[]
+  identities Identity[]
+  contents   Content[]
+  tags       Tag[]
+  linkTokens LinkToken[]
+}
+
+model Identity {
+  id         String       @id @default(uuid())
+  userId     String
+  provider   IdentityType
+  providerId String
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+}
+
+model LinkToken {
+  id         String    @id @default(uuid())
+  userId     String
+  token      String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
 }
 
 model Content {
-  id          String      @id @default(uuid())
+  id          String        @id @default(uuid())
   userId      String
   contentType ContentType
-  isFavorite  Boolean     @default(false)
+  isFavorite  Boolean       @default(false)
+  status      ContentStatus @default(rejected)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,8 +80,9 @@ model Link {
   id        String @id @default(uuid())
   contentId String @unique
 
-  url         String
-  provider    String?
+  url      String
+  provider String?
+
   title       String?
   description String?
 
@@ -61,8 +93,9 @@ model Image {
   id        String @id @default(uuid())
   contentId String @unique
 
-  size        Int
-  extension   String
+  size      Int
+  extension String
+
   title       String?
   description String?
 
@@ -73,8 +106,9 @@ model Video {
   id        String @id @default(uuid())
   contentId String @unique
 
-  size        Int
-  mimeType    String
+  size     Int
+  mimeType String
+
   title       String?
   description String?
 
@@ -85,9 +119,10 @@ model Document {
   id        String @id @default(uuid())
   contentId String @unique
 
-  size        Int
-  mimeType    String
-  fileName    String
+  size     Int
+  mimeType String
+  fileName String
+
   title       String?
   description String?
 
@@ -121,4 +156,14 @@ enum ContentType {
   image
   video
   document
+}
+
+enum ContentStatus {
+  resolved
+  rejected
+}
+
+enum IdentityType {
+  telegram
+  google
 }

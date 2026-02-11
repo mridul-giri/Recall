@@ -1,5 +1,7 @@
 import { Context } from "grammy";
 import { BotError } from "./botError.js";
+import axios from "axios";
+import BotReplies from "./constants.js";
 
 export const asyncErrorHandler = (handler: (ctx: Context) => Promise<void>) => {
   return async (ctx: Context) => {
@@ -10,8 +12,15 @@ export const asyncErrorHandler = (handler: (ctx: Context) => Promise<void>) => {
         if (error.userMessage) await ctx.reply(error.userMessage);
         console.error(`[BotError] ${error.logMessage || error.userMessage}`);
       } else {
-        await ctx.reply("Something went wrong. Please try again.");
-        console.error("[UnexpectedError]", error);
+        if (axios.isAxiosError(error)) {
+          await ctx.reply(
+            error.response?.data.message || BotReplies.UNEXPECTED_ERROR,
+          );
+          console.error("[AxiosError]", error.response?.data.message);
+        } else {
+          await ctx.reply(BotReplies.UNEXPECTED_ERROR);
+          console.error("[UnexpectedError]", error);
+        }
       }
     }
   };

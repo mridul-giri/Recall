@@ -1,7 +1,6 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "./createS3Client.js";
-import { config } from "../config/config.js";
-import { ContentType } from "@repo/db";
+import { s3Client } from "./createS3Client";
+import { config } from "./config";
 
 export const uploadFileToS3 = async (
   contentId: string,

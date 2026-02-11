@@ -1,7 +1,7 @@
-import bot from "./bot/bot.js";
+import bot from "./bot.js";
 import { webhookCallback } from "grammy";
 import express from "express";
-import { config } from "./config/config.js";
+import { config } from "./utils/config.js";
 import { v4 as uuidv4 } from "uuid";
 
 const app = express();
