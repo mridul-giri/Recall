@@ -8,12 +8,23 @@ async function createTelegramUser(req: NextRequest) {
   const requestOrigin = req.headers.get("x-request-origin");
   if (requestOrigin !== "internal") throw new ApiError("Forbidden", 403);
 
-  const { telegramId, name, userName } = await req.json();
-  const providerId = telegramId
+  const { telegramId, userName, token } = await req.json();
+  const providerId = telegramId;
+
+  if (token) {
+    await TelegramService.linkTelegramIdentityWithToken(
+      token,
+      providerId,
+      userName,
+    );
+    return NextResponse.json(
+      { message: Replies.USER_CREATE_SUCCESS },
+      { status: 200 },
+    );
+  }
 
   const user = await TelegramService.findOrCreateUserWithIdentity(
     providerId,
-    name,
     userName,
   );
 

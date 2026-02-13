@@ -4,6 +4,7 @@ import { ApiError } from "../utils/customError";
 import parseLinkEntity from "../utils/parseLinkEntity";
 import { Replies } from "../utils/constants";
 import { uploadFileToS3 } from "../utils/uploadFileToS3";
+import crypto from "node:crypto";
 
 /**
  * Service class for handling business logic related to Telegram users and identities.
@@ -12,13 +13,11 @@ export class TelegramService {
   /**
    * find or create a user with associated identity record for the given provider.
    * @param providerId Telegram Id of the user
-   * @param name name of the user
    * @param userName username of the user
    * @returns The user object if found or created successfully, otherwise null.
    */
   static async findOrCreateUserWithIdentity(
     providerId: string,
-    name: string,
     userName: string,
   ) {
     const existingIdentity =
@@ -33,7 +32,6 @@ export class TelegramService {
     return TelegramRepository.createUserWithIdentity(
       providerId,
       provider,
-      name,
       userName,
     );
   }
@@ -220,5 +218,54 @@ export class TelegramService {
       await TelegramRepository.deleteContentWithAssociatedData(contentData.id);
       throw new ApiError(Replies.DOCUMENT_SAVE_FAILED, 500);
     }
+  }
+
+  /**
+   * Link Telegram identity with an existing user account using a token generated from the web app.
+   * @param token Token generated from the web app
+   * @param providerId Telegram ID of the user
+   * @param username Username of the Telegram user
+   * @returns Returns true if the linking is successful
+   */
+  static async linkTelegramIdentityWithToken(
+    token: string,
+    providerId: string,
+    username: string,
+  ) {
+    const hashToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const linkTokenRecord =
+      await TelegramRepository.findLinkTokenByHash(hashToken);
+
+    if (!linkTokenRecord) throw new ApiError(Replies.TOKEN_NOT_FOUND, 404);
+
+    if (hashToken !== linkTokenRecord.token)
+      throw new ApiError(Replies.WRONG_TOKEN, 400);
+
+    if (linkTokenRecord.isUsed)
+      throw new ApiError(Replies.TOKEN_ALREADY_USED, 400);
+
+    if (linkTokenRecord.expiresAt < new Date())
+      throw new ApiError(Replies.TOKEN_EXPIRED, 400);
+
+    const existingIdentity =
+      await TelegramRepository.findByProviderAndProviderId(
+        IdentityType.telegram,
+        providerId,
+      );
+    if (existingIdentity)
+      throw new ApiError(Replies.TELEGRAM_ALREADY_LINKED, 400);
+
+    const identity = TelegramRepository.attachTelegramIdentityToUser(
+      linkTokenRecord.userId,
+      IdentityType.telegram,
+      providerId,
+      username,
+    );
+    if (!identity) throw new ApiError(Replies.USER_CREATE_FAILED, 500);
+
+    await TelegramRepository.updateLinkToken(linkTokenRecord.id);
+
+    return true;
   }
 }

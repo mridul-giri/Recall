@@ -26,19 +26,16 @@ export class TelegramRepository {
    * create a user with associated identity record for the given provider.
    * @param providerId Telegram Id of the user
    * @param provider identity type of the provider, in this case it will be telegram
-   * @param name name of the user
    * @param userName username of the user
    * @returns The user object if created successfully, otherwise null.
    */
   static async createUserWithIdentity(
     providerId: string,
     provider: IdentityType,
-    name: string,
     userName: string | undefined,
   ) {
     return await prisma.user.create({
       data: {
-        name,
         userName,
         identities: {
           create: {
@@ -193,6 +190,68 @@ export class TelegramRepository {
       },
       data: {
         status: ContentStatus.resolved,
+      },
+    });
+  }
+
+  /**
+   * Find a link token by its hash token value.
+   * @param token Hash token value of the link token
+   * @returns The link token object if found, otherwise null
+   */
+  static async findLinkTokenByHash(token: string) {
+    return await prisma.linkToken.findUnique({
+      where: {
+        token,
+      },
+    });
+  }
+
+  /**
+   * Attach Telegram identity to an existing user by creating a new identity record and updating the user's username.
+   * @param userId User ID of the existing user
+   * @param provider Provider type of the identity, in this case it will be telegram
+   * @param providerId Telegram ID of the user
+   * @param userName Username of the user to be updated
+   * @returns The updated user object if successful, otherwise null.
+   */
+  static async attachTelegramIdentityToUser(
+    userId: string,
+    provider: IdentityType,
+    providerId: string,
+    userName: string,
+  ) {
+    return await prisma.$transaction([
+      prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          userName,
+        },
+      }),
+      prisma.identity.create({
+        data: {
+          userId,
+          provider,
+          providerId,
+        },
+      }),
+    ]);
+  }
+
+  /**
+   * Update a link token's status to used by its ID.
+   * @param tokenId Token ID of the link token
+   * @returns The updated link token object if successful, otherwise null.
+   */
+  static async updateLinkToken(tokenId: string) {
+    return await prisma.linkToken.update({
+      where: {
+        id: tokenId,
+      },
+      data: {
+        isUsed: true,
       },
     });
   }

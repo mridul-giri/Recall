@@ -12,7 +12,9 @@ function getConfig() {
     BUCKET_REGION: z.string(),
     BUCKET_KEY: z.string(),
     BUCKET_NAME: z.string(),
-    BOT_INTERNAL_TOKEN: z.string(),
+    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_SECRET: z.string(),
+    NEXTAUTH_SECRET: z.string(),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
   });
 }

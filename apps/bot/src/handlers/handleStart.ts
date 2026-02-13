@@ -5,14 +5,16 @@ import { apiClient } from "../lib/apiClient.js";
 
 export const handleStart = async (ctx: Context) => {
   const telegramUser = ctx.from;
-  if (!telegramUser) {
+  if (!telegramUser || !ctx.message?.text) {
     throw new BotError(BotReplies.UNEXPECTED_ERROR, "Missing required context");
   }
+
+  const token = ctx.message.text.split(" ")[1];
 
   const result = await apiClient.post("api/telegram/start", {
     telegramId: telegramUser.id.toString(),
     userName: telegramUser.username,
-    name: telegramUser.first_name,
+    token: token || null,
   });
 
   await ctx.reply(BotReplies.WELCOME);

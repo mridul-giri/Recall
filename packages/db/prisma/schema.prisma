@@ -10,9 +10,9 @@ datasource db {
 model User {
   id       String  @id @default(uuid())
   isActive Boolean @default(true)
-  name     String
+  name     String?
   userName String?
-  email    String?
+  email    String? @unique
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -38,17 +38,17 @@ model Identity {
 }
 
 model LinkToken {
-  id         String    @id @default(uuid())
-  userId     String
-  token      String    @unique
-  expiresAt  DateTime
-  consumedAt DateTime?
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
 
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
+  @@index([userId])
 }
 
 model Content {
@@ -74,6 +74,8 @@ model Content {
   tags ContentTag[]
 
   @@index([userId, contentType])
+  @@index([userId, isDeleted])
+  @@index([userId, status])
 }
 
 model Link {
