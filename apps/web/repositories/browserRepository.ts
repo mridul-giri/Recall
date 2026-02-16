@@ -37,4 +37,18 @@ export class BrowserRepository {
       },
     });
   }
+
+  /**
+   * Find a used token for a user.
+   * @param userId User ID of the user
+   * @returns Returns the used token object if found, otherwise null.
+   */
+  static async findUsedToken(userId: string) {
+    return await prisma.linkToken.findFirst({
+      where: {
+        userId,
+        isUsed: true,
+      },
+    });
+  }
 }

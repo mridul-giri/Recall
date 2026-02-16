@@ -7,10 +7,13 @@ import handleText from "./handlers/handleText.js";
 import handleImage from "./handlers/handleImage.js";
 import handleVideo from "./handlers/handleVideo.js";
 import handleDocument from "./handlers/handleDocument.js";
+import handleConnect from "./handlers/handleConnect.js";
 
 const bot = new Bot(config.BOT_TOKEN);
 
 bot.command("start", asyncErrorHandler(handleStart));
+
+bot.command("connect", asyncErrorHandler(handleConnect));
 
 bot.on("message:entities:url", asyncErrorHandler(handleLink));
 

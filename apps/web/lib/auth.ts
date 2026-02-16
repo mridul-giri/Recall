@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { config } from "../utils/config";
 import { IdentityType, prisma } from "@repo/db";
+import { cookies } from "next/headers";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -14,7 +15,65 @@ export const authOptions: NextAuthOptions = {
   secret: config.NEXTAUTH_SECRET,
   callbacks: {
     async signIn({ user, account }) {
+      const cookieStore = await cookies();
+      const cookie = cookieStore.get("linkingSession");
+
+      let userId: string | undefined;
+      let tokenId: string | undefined;
+
+      if (cookie?.value) {
+        ({ userId, tokenId } = JSON.parse(cookie.value));
+      }
+
       if (!account) return false;
+
+      if (tokenId && userId) {
+        const existingUser = await prisma.user.findUnique({
+          where: {
+            id: userId,
+          },
+        });
+        if (!existingUser) return false;
+
+        const existingIdentity = await prisma.identity.findFirst({
+          where: {
+            provider: IdentityType.google,
+            providerId: account.providerAccountId,
+          },
+        });
+        if (existingIdentity) return false;
+
+        await prisma.identity.create({
+          data: {
+            provider: IdentityType.google,
+            providerId: account.providerAccountId,
+            userId,
+          },
+        });
+
+        await prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            name: user.name,
+            email: user.email,
+          },
+        });
+
+        await prisma.linkToken.update({
+          where: {
+            id: tokenId,
+          },
+          data: {
+            isUsed: true,
+          },
+        });
+
+        cookieStore.delete("linkingSession");
+        return true;
+      }
+
       const existingIdentity = await prisma.identity.findFirst({
         where: {
           provider: IdentityType.google,
@@ -22,23 +81,6 @@ export const authOptions: NextAuthOptions = {
         },
       });
       if (existingIdentity) return true;
-
-      const userWithSameEmail = await prisma.user.findUnique({
-        where: {
-          email: user.email ?? undefined,
-        },
-      });
-      if (userWithSameEmail) {
-        await prisma.identity.create({
-          data: {
-            provider: IdentityType.google,
-            providerId: account.providerAccountId,
-            userId: userWithSameEmail.id,
-          },
-        });
-
-        return true;
-      }
 
       await prisma.user.create({
         data: {

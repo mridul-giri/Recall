@@ -5,6 +5,8 @@ import parseLinkEntity from "../utils/parseLinkEntity";
 import { Replies } from "../utils/constants";
 import { uploadFileToS3 } from "../utils/uploadFileToS3";
 import crypto from "node:crypto";
+import { generateRandomToken } from "../utils/generateRandomToken";
+import { BrowserRepository } from "../repositories/browserRepository";
 
 /**
  * Service class for handling business logic related to Telegram users and identities.
@@ -237,16 +239,7 @@ export class TelegramService {
     const linkTokenRecord =
       await TelegramRepository.findLinkTokenByHash(hashToken);
 
-    if (!linkTokenRecord) throw new ApiError(Replies.TOKEN_NOT_FOUND, 404);
-
-    if (hashToken !== linkTokenRecord.token)
-      throw new ApiError(Replies.WRONG_TOKEN, 400);
-
-    if (linkTokenRecord.isUsed)
-      throw new ApiError(Replies.TOKEN_ALREADY_USED, 400);
-
-    if (linkTokenRecord.expiresAt < new Date())
-      throw new ApiError(Replies.TOKEN_EXPIRED, 400);
+    if (!linkTokenRecord) throw new ApiError(Replies.TOKEN_NOT_FOUND, 400);
 
     const existingIdentity =
       await TelegramRepository.findByProviderAndProviderId(
@@ -267,5 +260,27 @@ export class TelegramService {
     await TelegramRepository.updateLinkToken(linkTokenRecord.id);
 
     return true;
+  }
+
+  static async createWebLinkToken(providerId: string) {
+    const user = await TelegramRepository.findByProviderAndProviderId(
+      IdentityType.telegram,
+      providerId,
+    );
+    if (!user) throw new ApiError(Replies.USER_ACCOUNT_NOT_FOUND, 404);
+
+    const usedToken = await BrowserRepository.findUsedToken(user.userId);
+    if (usedToken) throw new ApiError(Replies.ACCOUNT_ALREADY_CONNECTED, 400);
+
+    const token = generateRandomToken();
+
+    const storedToken = await BrowserRepository.storeHashToken(
+      user.userId,
+      token.hashToken,
+      token.expiresAt,
+    );
+    if (!storedToken) throw new ApiError(Replies.UNEXPECTED_ERROR, 500);
+
+    return token.rawToken;
   }
 }

@@ -203,6 +203,8 @@ export class TelegramRepository {
     return await prisma.linkToken.findUnique({
       where: {
         token,
+        isUsed: false,
+        expiresAt: { gt: new Date() },
       },
     });
   }
