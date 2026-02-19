@@ -14,7 +14,6 @@ async function generateAccountLinkToken(req: NextRequest) {
   const token = await TelegramService.createWebLinkToken(providerId);
 
   const deepLink = `${config.CLIENT_URL}/web/connect?token=${token}`;
-  //https://localhost:3000/api/web/validate-token/connect?token=<token>
 
   return NextResponse.json(deepLink, { status: 200 });
 }

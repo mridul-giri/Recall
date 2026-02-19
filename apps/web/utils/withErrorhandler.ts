@@ -3,10 +3,10 @@ import { ApiError } from "./customError";
 import { Replies } from "./constants";
 
 export const withErrorHandler =
-  (handler: (req: NextRequest) => Promise<NextResponse>) =>
-  async (req: NextRequest) => {
+  (handler: (req: NextRequest, params: any) => Promise<NextResponse>) =>
+  async (req: NextRequest, params: any) => {
     try {
-      return await handler(req);
+      return await handler(req, params);
     } catch (error) {
       if (error instanceof ApiError) {
         return NextResponse.json(

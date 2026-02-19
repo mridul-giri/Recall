@@ -14,6 +14,9 @@ const handleLink = async (ctx: Context) => {
     throw new BotError(BotReplies.UNEXPECTED_ERROR, "Missing required context");
   }
 
+  if (entities.length > 5)
+    throw new BotError(BotReplies.LINK_LIMIT_ERROR, "Link limit exceed");
+
   const result = await apiClient.post("api/telegram/link", {
     telegramId: ctx.from.id.toString(),
     entities,

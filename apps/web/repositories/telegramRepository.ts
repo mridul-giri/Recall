@@ -112,6 +112,7 @@ export class TelegramRepository {
    * @param contentType Type of the content, in this case it will be video
    * @param fileSize File size of the video
    * @param mimeType MIME type of the video
+   * @param extension Extension of the video file
    * @returns The created content object if created successfully, otherwise null.
    */
   static async createContentWithVideoData(
@@ -119,6 +120,7 @@ export class TelegramRepository {
     contentType: ContentType,
     fileSize: number,
     mimeType: string,
+    extension: string,
   ) {
     return await prisma.content.create({
       data: {
@@ -128,6 +130,7 @@ export class TelegramRepository {
           create: {
             size: fileSize,
             mimeType,
+            extension,
           },
         },
       },
@@ -141,6 +144,7 @@ export class TelegramRepository {
    * @param fileSize File size of the document
    * @param mimeType MIME type of the document
    * @param fileName Original file name of the document
+   * @param extension Extension of the document file
    * @returns The created content object if created successfully, otherwise null.
    */
   static async createContentWithDocumentData(
@@ -149,6 +153,7 @@ export class TelegramRepository {
     fileSize: number,
     mimeType: string,
     fileName: string,
+    extension: string,
   ) {
     return await prisma.content.create({
       data: {
@@ -159,6 +164,7 @@ export class TelegramRepository {
             size: fileSize,
             mimeType,
             fileName,
+            extension,
           },
         },
       },

@@ -106,13 +106,34 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (identity) token.userId = identity.userId;
+        if (identity) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: identity?.userId },
+            select: { isActive: true },
+          });
+          if (!dbUser || dbUser.isActive == false) {
+            return {};
+          }
+          token.userId = identity.userId;
+        }
+        return token;
       }
+
+      if (token.userId) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.userId },
+          select: { isActive: true },
+        });
+        if (!dbUser || dbUser.isActive == false) {
+          return {};
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (token.userId) {
-        (session.user as any).id = token.userId;
+        session.user.id = token.userId;
       }
       return session;
     },

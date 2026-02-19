@@ -58,6 +58,7 @@ model Content {
   contentType ContentType
   isFavorite  Boolean       @default(false)
   status      ContentStatus @default(rejected)
+  title       String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,8 +75,8 @@ model Content {
 
   tags ContentTag[]
 
-  @@index([userId, contentType])
-  @@index([userId, isDeleted])
+  @@index([userId, contentType, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, isDeleted, createdAt(sort: Desc), id(sort: Desc)])
   @@index([userId, status])
 }
 
@@ -85,9 +86,6 @@ model Link {
 
   url      String
   provider String?
-
-  title       String?
-  description String?
 
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
@@ -99,9 +97,6 @@ model Image {
   size      Int
   extension String
 
-  title       String?
-  description String?
-
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
 
@@ -109,11 +104,9 @@ model Video {
   id        String @id @default(uuid())
   contentId String @unique
 
-  size     Int
-  mimeType String
-
-  title       String?
-  description String?
+  size      Int
+  mimeType  String
+  extension String
 
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }
@@ -122,12 +115,10 @@ model Document {
   id        String @id @default(uuid())
   contentId String @unique
 
-  size     Int
-  mimeType String
-  fileName String
-
-  title       String?
-  description String?
+  size      Int
+  mimeType  String
+  fileName  String
+  extension String
 
   content Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
 }

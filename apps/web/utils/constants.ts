@@ -27,4 +27,11 @@ export const WebReplies = {
   ACCOUNT_ALREADY_CONNECTED: "This account is already connected to Telegram",
   TOKEN_NOT_FOUND:
     "Invalid or Expired token. Please generate a new one from the Telegram",
+  NO_CONTENT_FOUND: "No Content Found",
+  TAG_NAME_EXIST: "Tag Name already exist",
+  NO_TAG_FOUND: "No Tag Found",
+  NO_UPDATE_FIELD: "No fields provided for update",
+  USER_DELETE_FAILED: "User deletion failed. Retry later.",
+  TAG_NAME_REQUIRED: "tagName is required and must be a string",
+  EXTENSION_REQUIRED: "Extension is required",
 };

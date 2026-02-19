@@ -27,18 +27,15 @@ const processVideoJob = async (ctx: Context) => {
     fileBuffer,
   } = await downloadTelegramFile(ctx);
 
-  const result = await apiClient.post(
-    "api/telegram/video",
-    { fileBuffer },
-    {
-      headers: {
-        "x-file-size": fileSize,
-        "x-telegram-id": ctx.from.id.toString(),
-        "x-extension": extension,
-        "x-mime-type": video.mime_type,
-      },
+  const result = await apiClient.post("api/telegram/video", fileBuffer, {
+    headers: {
+      "Content-Type": "application/octet-scream",
+      "x-file-size": fileSize,
+      "x-telegram-id": ctx.from.id.toString(),
+      "x-extension": extension,
+      "x-mime-type": video.mime_type,
     },
-  );
+  });
 
   await ctx.reply(BotReplies.VIDEO_SAVE_SUCCESS);
   console.log(result.data.message || "Video saved successfully");

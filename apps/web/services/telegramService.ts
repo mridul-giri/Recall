@@ -99,21 +99,24 @@ export class TelegramService {
     );
     if (!user) throw new ApiError(Replies.USER_ACCOUNT_NOT_FOUND, 404);
 
+    const ext = extension == "jpg" ? "jpeg" : extension;
+
     const contentData = await TelegramRepository.createContentWithImageData(
       user.userId,
       ContentType.image,
       fileSize,
-      extension,
+      ext,
     );
 
     if (!contentData) throw new ApiError(Replies.IMAGE_SAVE_FAILED, 500);
 
     try {
-      const mediaType = `${ContentType.image}/${extension}`;
+      const mediaType = `${ContentType.image}/${ext}`;
       await uploadFileToS3(
+        user.userId,
         contentData.id,
         ContentType.image,
-        extension,
+        ext,
         fileBuffer,
         mediaType,
       );
@@ -151,6 +154,7 @@ export class TelegramService {
       ContentType.video,
       fileSize,
       mimeType,
+      extension,
     );
 
     if (!contentData) throw new ApiError(Replies.VIDEO_SAVE_FAILED, 500);
@@ -158,6 +162,7 @@ export class TelegramService {
     try {
       const mediaType = mimeType;
       await uploadFileToS3(
+        user.userId,
         contentData.id,
         ContentType.video,
         extension,
@@ -201,6 +206,7 @@ export class TelegramService {
       fileSize,
       mimeType,
       fileName,
+      extension,
     );
 
     if (!contentData) throw new ApiError(Replies.DOCUMENT_SAVE_FAILED, 500);
@@ -208,6 +214,7 @@ export class TelegramService {
     try {
       const mediaType = mimeType;
       await uploadFileToS3(
+        user.userId,
         contentData.id,
         ContentType.document,
         extension,

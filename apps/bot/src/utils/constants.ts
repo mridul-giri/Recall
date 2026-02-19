@@ -8,6 +8,7 @@ const BotReplies = {
     - Document files`,
   WELCOME: "Welcome to Recall 👋",
   LINK_SAVE_SUCCESS: "Your links were saved successfully ✅",
+  LINK_LIMIT_ERROR: "You can not store more than 5 link at a time",
   MAX_FILE_SIZE: "Max allowed size is 10 MB",
   SAVING: "Saving...",
   IMAGE_SAVE_FAILED: "Failed to save your image. Please try again.",

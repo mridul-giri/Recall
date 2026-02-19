@@ -23,21 +23,18 @@ const processImageJob = async (ctx: Context) => {
   }
   const {
     fileSize = imageSize,
-    extension = "jpg",
+    extension = "jpeg",
     fileBuffer,
   } = await downloadTelegramFile(ctx);
 
-  const result = await apiClient.post(
-    "api/telegram/image",
-    { fileBuffer },
-    {
-      headers: {
-        "x-file-size": fileSize,
-        "x-telegram-id": ctx.from.id.toString(),
-        "x-extension": extension,
-      },
+  const result = await apiClient.post("api/telegram/image", fileBuffer, {
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "x-file-size": fileSize,
+      "x-telegram-id": ctx.from.id.toString(),
+      "x-extension": extension,
     },
-  );
+  });
 
   await ctx.reply(BotReplies.IMAGE_SAVE_SUCCESS);
   console.log(result.data.message || "Image saved successfully");

@@ -16,6 +16,10 @@ function getConfig() {
     GOOGLE_CLIENT_SECRET: z.string(),
     NEXTAUTH_SECRET: z.string(),
     CLIENT_URL: z.string(),
+    DISTRIBUTION_DOMAIN: z.string(),
+    DISTRIBUTION_ID: z.string(),
+    CLOUD_FRONT_KEYPAIR_ID: z.string(),
+    CLOUD_FRONT_PRIVATE_KEY: z.string(),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
   });
 }
