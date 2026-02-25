@@ -16,7 +16,8 @@
     "DISTRIBUTION_ID",
     "CLOUD_FRONT_KEYPAIR_ID",
     "CLOUD_FRONT_PRIVATE_KEY",
-    "BOT_INTERNAL_TOKEN"
+    "BOT_INTERNAL_TOKEN",
+    "CLIENT_URL"
   ],
   "ui": "tui",
   "tasks": {
