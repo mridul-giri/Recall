@@ -1,41 +1,11 @@
-"use client";
-import axios from "axios";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
-import { getErrorMessage } from "../../../utils/getErrorMessage";
-import { toast } from "sonner";
-import { Spinner } from "@repo/ui";
+import { ConnectClient } from "../../../components/ConnectClient";
 
-export default function ConnectPage() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-
-  const router = useRouter();
-
-  const validateToken = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:3000/api/web/validate-token?token=${token}`,
-      );
-      if (res.data.status == 200) {
-        router.push("/auth/register");
-      }
-    } catch (error) {
-      toast.warning(getErrorMessage(error), { position: "top-center" });
-      router.push("/");
-    }
-  };
-
-  useEffect(() => {
-    validateToken();
-  }, [token]);
+export default function ConnectPage({ searchParams }: any) {
+  const token = searchParams.token;
 
   return (
-    <div className="flex justify-center items-center mt-10">
-      <div className="flex justify-center items-center gap-2 tertiary-bg py-4 px-10 text-white rounded-2xl">
-        <Spinner className="w-10 h-10" />
-        <h1 className="text-4xl font-medium">Validating</h1>
-      </div>
-    </div>
+    <>
+      <ConnectClient token={token} />
+    </>
   );
 }
