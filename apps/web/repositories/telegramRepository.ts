@@ -34,16 +34,23 @@ export class TelegramRepository {
     provider: IdentityType,
     userName: string | undefined,
   ) {
-    return await prisma.user.create({
-      data: {
-        userName,
-        identities: {
-          create: {
-            provider,
-            providerId,
+    return await prisma.$transaction(async (tx) => {
+      const existing = await tx.identity.findFirst({
+        where: { provider, providerId },
+      });
+      if (existing) return existing;
+
+      return tx.user.create({
+        data: {
+          userName,
+          identities: {
+            create: {
+              provider,
+              providerId,
+            },
           },
         },
-      },
+      });
     });
   }
 

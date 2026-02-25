@@ -16,7 +16,7 @@ export class TelegramService {
    * find or create a user with associated identity record for the given provider.
    * @param providerId Telegram Id of the user
    * @param userName username of the user
-   * @returns The user object if found or created successfully, otherwise null.
+   * @returns The user object if found or created successfully.
    */
   static async findOrCreateUserWithIdentity(
     providerId: string,
@@ -27,13 +27,11 @@ export class TelegramService {
         IdentityType.telegram,
         providerId,
       );
-    if (existingIdentity) throw new ApiError(Replies.USER_ALREADY_EXIST, 400);
-
-    const provider = IdentityType.telegram;
+    if (existingIdentity) return existingIdentity;
 
     return TelegramRepository.createUserWithIdentity(
       providerId,
-      provider,
+      IdentityType.telegram,
       userName,
     );
   }
