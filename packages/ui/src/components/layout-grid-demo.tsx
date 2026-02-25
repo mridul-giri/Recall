@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { LayoutGrid } from "@repo/components/ui/layout-grid";
+import { LayoutGrid } from "./ui/layout-grid";
+
 
 export default function LayoutGridDemo() {
   return (
