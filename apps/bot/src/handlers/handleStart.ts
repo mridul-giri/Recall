@@ -9,10 +9,6 @@ export const handleStart = async (ctx: Context) => {
     throw new BotError(BotReplies.UNEXPECTED_ERROR, "Missing required context");
   }
 
-  console.log(
-    `[handleStart] triggered, message="${ctx.message.text}", userId=${telegramUser.id}, username=${telegramUser.username}`,
-  );
-
   const token = ctx.message.text.split(" ")[1];
 
   const result = await apiClient.post("api/telegram/start", {

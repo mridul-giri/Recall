@@ -13,10 +13,6 @@ async function createTelegramUser(req: NextRequest) {
   const { telegramId, userName, token } = startSchema.parse(body);
   const providerId = telegramId;
 
-  console.log(
-    `[START] providerId=${providerId}, userName=${userName}, token=${token ? "present" : "null"}`,
-  );
-
   if (token) {
     await TelegramService.linkTelegramIdentityWithToken(
       token,
