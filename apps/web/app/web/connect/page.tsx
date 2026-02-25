@@ -1,7 +1,7 @@
 import { ConnectClient } from "../../../components/ConnectClient";
 
-export default function ConnectPage({ searchParams }: any) {
-  const token = searchParams.token;
+export default async function ConnectPage({ searchParams }: any) {
+  const { token } = await searchParams;
 
   return (
     <>
