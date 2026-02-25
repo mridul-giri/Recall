@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ApiError } from "../../../../../utils/customError";
 import { getCurrentUser } from "../../../../../utils/getCurrentUser";
-import { WebReplies } from "../../../../../utils/constants";
 import { withErrorHandler } from "../../../../../utils/withErrorhandler";
 import { BrowserService } from "../../../../../services/browserService";
+import { updateContentSchema } from "../../../../../lib/schemas";
 
 async function updateContent(
   req: NextRequest,
@@ -14,12 +14,10 @@ async function updateContent(
 
   const { contentId } = await params;
 
-  const { isFavorite, title } = await req.json();
+  const body = await req.json();
+  const { title } = updateContentSchema.parse(body);
 
-  await BrowserService.updateContent(user.id, contentId, {
-    isFavorite,
-    title,
-  });
+  await BrowserService.updateContent(user.id, contentId, title);
 
   return NextResponse.json({ success: true }, { status: 200 });
 }
@@ -33,11 +31,8 @@ async function deleteContent(
 
   const { contentId } = await params;
 
-  const { extension } = await req.json();
-
-  if (!extension || typeof extension !== "string") {
-    throw new ApiError(WebReplies.EXTENSION_REQUIRED, 400);
-  }
+  const searchParams = req.nextUrl.searchParams;
+  const extension = searchParams.get("extension");
 
   await BrowserService.deleteContent(user.id, contentId, extension);
 

@@ -92,6 +92,8 @@ export class TelegramService {
     fileSize: number,
     extension: string,
     fileBuffer: Buffer,
+    width: any,
+    height: any,
   ) {
     const user = await TelegramRepository.findByProviderAndProviderId(
       IdentityType.telegram,
@@ -106,6 +108,8 @@ export class TelegramService {
       ContentType.image,
       fileSize,
       ext,
+      parseInt(width),
+      parseInt(height),
     );
 
     if (!contentData) throw new ApiError(Replies.IMAGE_SAVE_FAILED, 500);
@@ -269,6 +273,11 @@ export class TelegramService {
     return true;
   }
 
+  /**
+   * Create a web link token for a Telegram user to link their Telegram account with the web app. This generates a unique token that can be used to associate the Telegram identity with a user account in the web app.
+   * @param providerId Provider ID (Telegram ID) of the user for whom the web link token is to be created
+   * @returns Returns the raw token string that can be used for linking the Telegram account with the web app, or throws an error if the user account is not found or if there is already an active link token for the user.
+   */
   static async createWebLinkToken(providerId: string) {
     const user = await TelegramRepository.findByProviderAndProviderId(
       IdentityType.telegram,

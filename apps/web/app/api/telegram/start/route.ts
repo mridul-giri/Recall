@@ -3,19 +3,21 @@ import { ApiError } from "../../../../utils/customError";
 import { withErrorHandler } from "../../../../utils/withErrorhandler";
 import { TelegramService } from "../../../../services/telegramService";
 import { Replies } from "../../../../utils/constants";
+import { startSchema } from "../../../../lib/schemas";
 
 async function createTelegramUser(req: NextRequest) {
   const requestOrigin = req.headers.get("x-request-origin");
   if (requestOrigin !== "internal") throw new ApiError("Forbidden", 403);
 
-  const { telegramId, userName, token } = await req.json();
+  const body = await req.json();
+  const { telegramId, userName, token } = startSchema.parse(body);
   const providerId = telegramId;
 
   if (token) {
     await TelegramService.linkTelegramIdentityWithToken(
       token,
       providerId,
-      userName,
+      userName ?? "",
     );
     return NextResponse.json(
       { message: Replies.USER_CREATE_SUCCESS },
@@ -25,7 +27,7 @@ async function createTelegramUser(req: NextRequest) {
 
   const user = await TelegramService.findOrCreateUserWithIdentity(
     providerId,
-    userName,
+    userName ?? "",
   );
 
   if (!user) throw new ApiError(Replies.USER_CREATE_FAILED, 500);

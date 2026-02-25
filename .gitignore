@@ -38,5 +38,3 @@ yarn-error.log*
 *.pem
 
 .vscode/
-
-Structure.md

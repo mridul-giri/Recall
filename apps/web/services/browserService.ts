@@ -6,7 +6,6 @@ import crypto from "node:crypto";
 import { TelegramRepository } from "../repositories/telegramRepository";
 import { ContentType } from "@repo/db";
 import { cloudFrontSignedUrl } from "../utils/cloudFrontSignedUrl";
-import { config } from "../utils/config";
 import { deleteFileFromS3 } from "../utils/deleteFileFromS3";
 import { deleteFolderFromS3 } from "../utils/deleteFolderFromS3";
 
@@ -37,6 +36,12 @@ export class BrowserService {
     return token.rawToken;
   }
 
+  /**
+   * Create a new tag for the user with the provided tag name.
+   * @param userId User ID of the user
+   * @param tagName Name of the tag to be created
+   * @returns The created tag object if successful, otherwise an error is thrown.
+   */
   static async createTag(userId: string, tagName: string) {
     const normalizedTagName = tagName.trim().toLowerCase();
 
@@ -55,10 +60,22 @@ export class BrowserService {
     return tag;
   }
 
+  /**
+   * List all tags for the user based on the provided user ID.
+   * @param userId User ID of the user
+   * @returns Returns an array of tag objects associated with the user.
+   */
   static async listTags(userId: string) {
     return await BrowserRepository.listTag(userId);
   }
 
+  /**
+   * Update the name of an existing tag for the user based on the provided tag ID and new tag name.
+   * @param userId User ID of the user
+   * @param tagId Tag ID of the tag to be updated
+   * @param tagName The new name for the tag
+   * @returns The updated tag object if successful, otherwise an error is thrown.
+   */
   static async updateTag(userId: string, tagId: string, tagName: string) {
     const normalizedTagName = tagName.trim().toLowerCase();
 
@@ -84,42 +101,50 @@ export class BrowserService {
     return result;
   }
 
+  /**
+   * Delete an existing tag for the user based on the provided tag ID.
+   * @param userId User ID of the user
+   * @param tagId Tag ID of the tag to be deleted
+   * @returns Returns true if the tag was successfully deleted, otherwise an error is thrown.
+   */
   static async deleteTag(userId: string, tagId: string) {
     const result = await BrowserRepository.deleteTag(userId, tagId);
     if (result.count == 0) throw new ApiError(WebReplies.NO_TAG_FOUND, 404);
     return true;
   }
 
-  static async updateContent(
-    userId: string,
-    contentId: string,
-    payload: { isFavorite?: boolean; title?: string },
-  ) {
+  /**
+   * Update Content title for a user's content item based on the provided content ID and new title.
+   * @param userId User ID of the user
+   * @param contentId Content ID of the content item to be updated
+   * @param title New title for the content item
+   * @returns Returns true if the content title was successfully updated, otherwise an error is thrown.
+   */
+  static async updateContent(userId: string, contentId: string, title: string) {
     const content = await BrowserRepository.findContent(userId, contentId);
     if (!content) throw new ApiError(WebReplies.NO_CONTENT_FOUND, 404);
-
-    const data: any = {};
-    if (typeof payload.isFavorite === "boolean")
-      data.isFavorite = payload.isFavorite;
-    if (payload.title !== undefined) data.title = payload.title;
-
-    if (Object.keys(data).length === 0)
-      throw new ApiError(WebReplies.NO_UPDATE_FIELD, 400);
 
     const result = await BrowserRepository.updateContent(
       userId,
       contentId,
-      data,
+      title,
     );
     if (!result) throw new ApiError(WebReplies.UNEXPECTED_ERROR, 500);
 
     return true;
   }
 
+  /**
+   * Delete a content item for a user based on the provided content ID and extension. This includes deleting the content record from the database as well as the associated file from S3 storage if applicable.
+   * @param userId User ID of the user
+   * @param contentId Content ID of the content item to be deleted
+   * @param extension File extension of the content item to be deleted (required for non-link content types)
+   * @returns Returns true if the content item was successfully deleted, otherwise an error is thrown.
+   */
   static async deleteContent(
     userId: string,
     contentId: string,
-    extension: string,
+    extension: string | null,
   ) {
     const content = await BrowserRepository.findContent(userId, contentId);
     if (!content) throw new ApiError(WebReplies.NO_CONTENT_FOUND, 404);
@@ -129,25 +154,30 @@ export class BrowserService {
       if (result.count == 0)
         throw new ApiError(WebReplies.NO_CONTENT_FOUND, 404);
       return true;
-    } else {
-      try {
-        await deleteFileFromS3(
-          userId,
-          content.contentType,
-          contentId,
-          extension,
-        );
-      } catch (error) {
-        throw new ApiError(WebReplies.UNEXPECTED_ERROR, 500);
-      }
-
-      const result = await BrowserRepository.deleteContent(userId, contentId);
-      if (result.count == 0)
-        throw new ApiError(WebReplies.NO_CONTENT_FOUND, 404);
     }
+
+    if (!extension || typeof extension !== "string") {
+      throw new ApiError(WebReplies.EXTENSION_REQUIRED, 400);
+    }
+
+    try {
+      await deleteFileFromS3(userId, content.contentType, contentId, extension);
+    } catch (error) {
+      throw new ApiError(WebReplies.UNEXPECTED_ERROR, 500);
+    }
+
+    const result = await BrowserRepository.deleteContent(userId, contentId);
+    if (result.count == 0) throw new ApiError(WebReplies.NO_CONTENT_FOUND, 404);
     return true;
   }
 
+  /**
+   * Attach content items to a tag for a user based on the provided user ID, content IDs, and tag ID.
+   * @param userId User ID of the user
+   * @param contentIds Array of content IDs to be attached to the tag
+   * @param tagId Tag ID of the tag to which the content items will be attached
+   * @returns Returns true if the content items were successfully attached to the tag, otherwise an error is thrown.
+   */
   static async attachContents(
     userId: string,
     contentIds: string[],
@@ -167,6 +197,15 @@ export class BrowserService {
     return true;
   }
 
+  /**
+   * List content items associated with a specific tag for a user based on the provided user ID, tag ID, pagination cursor, limit, and content type.
+   * @param userId User ID of the user
+   * @param tagId Tag ID of the tag for which associated content items are to be listed
+   * @param decodedCursor Pagination cursor for fetching the next set of results (optional)
+   * @param limit Maximum number of content items to be returned in the response
+   * @param contentType Filter for content type to be returned in the response (optional)
+   * @returns Returns an object containing an array of content items associated with the specified tag, a pagination cursor for fetching the next set of results, and a boolean indicating whether there are more results available.
+   */
   static async listContentByTag(
     userId: string,
     tagId: string,
@@ -184,8 +223,58 @@ export class BrowserService {
 
     const hasMore = tagList.length > limit;
     const results = hasMore ? tagList.slice(0, -1) : tagList;
-    const lastItem = results[results.length - 1];
 
+    const data = await Promise.all(
+      results.map(async (item: any) => {
+        if (item.contentType == ContentType.link) {
+          return {
+            contentId: item.id,
+            contentType: item.contentType,
+            createdAt: new Date(item.createdAt).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+            updatedAt: new Date(item.updatedAt).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+            title: item.title,
+            url: item.link?.url,
+          };
+        }
+
+        const media = item.image || item.video || item.document;
+
+        const cloudfrontUrl = await cloudFrontSignedUrl(
+          userId,
+          item.contentType,
+          item.id,
+          media?.extension,
+        );
+
+        return {
+          contentId: item.id,
+          contentType: item.contentType,
+          createdAt: new Date(item.createdAt).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          updatedAt: new Date(item.updatedAt).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          cloudfrontUrl,
+          extension: media?.extension,
+          title: item.title,
+        };
+      }),
+    );
+
+    const lastItem = results[results.length - 1];
     let nextCursor = null;
     if (hasMore && lastItem) {
       nextCursor = Buffer.from(
@@ -193,9 +282,16 @@ export class BrowserService {
       ).toString("base64");
     }
 
-    return { data: tagList, nextCursor, hasMore };
+    return { data, nextCursor, hasMore };
   }
 
+  /**
+   * Detach a content item from a tag for a user based on the provided user ID, tag ID, and content ID.
+   * @param userId User ID of the user
+   * @param tagId Tag ID of the tag from which the content item will be detached
+   * @param contentId Content ID of the content item to be detached from the tag
+   * @returns Returns true if the content item was successfully detached from the tag, otherwise an error is thrown.
+   */
   static async dettachContent(
     userId: string,
     tagId: string,
@@ -216,6 +312,11 @@ export class BrowserService {
     return true;
   }
 
+  /**
+   * Delete a user and all associated data for a user based on the provided user ID. This includes deleting all content, tags, identities, and link tokens associated with the user, as well as the user record itself.
+   * @param userId User ID of the user to be deleted
+   * @returns Returns true if the user and all associated data were successfully deleted, otherwise an error is thrown.
+   */
   static async deleteUser(userId: string) {
     await BrowserRepository.requestUserDeletion(userId);
 
@@ -229,6 +330,11 @@ export class BrowserService {
     return true;
   }
 
+  /**
+   * Find a link token for a user based on the provided raw token value. This is used for linking a Telegram account with the web app.
+   * @param token Raw token value to be searched for
+   * @returns Returns an object containing the user ID and token ID if a valid link token is found, otherwise an error is thrown.
+   */
   static async findLinkToken(token: string) {
     const hashToken = crypto.createHash("sha256").update(token).digest("hex");
 
@@ -239,6 +345,14 @@ export class BrowserService {
     return { userId: linkTokenRecord.userId, tokenId: linkTokenRecord.id };
   }
 
+  /**
+   * Get content items for a user based on the provided user ID, pagination cursor, limit, and content type. This retrieves content items for the user with optional pagination and filtering by content type.
+   * @param userId User ID of the user for whom content items are to be retrieved
+   * @param decodedCursor Pagination cursor for fetching the next set of results (optional)
+   * @param limit Maximum number of content items to be returned in the response
+   * @param contentType Filter for content type to be returned in the response (optional)
+   * @returns Returns an object containing an array of content items for the user, a pagination cursor for fetching the next set of results, and a boolean indicating whether there are more results available.
+   */
   static async getContent(
     userId: string,
     decodedCursor: any,
@@ -261,9 +375,16 @@ export class BrowserService {
           return {
             contentId: item.id,
             contentType: item.contentType,
-            isFavorite: item.isFavorite,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt,
+            createdAt: new Date(item.createdAt).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
+            updatedAt: new Date(item.updatedAt).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            }),
             title: item.title,
             url: item.link?.url,
           };
@@ -271,7 +392,7 @@ export class BrowserService {
 
         const media = item.image || item.video || item.document;
 
-        const cloudFrontUrl = await cloudFrontSignedUrl(
+        const cloudfrontUrl = await cloudFrontSignedUrl(
           userId,
           contentType,
           item.id,
@@ -281,10 +402,17 @@ export class BrowserService {
         return {
           contentId: item.id,
           contentType: item.contentType,
-          isFavorite: item.isFavorite,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-          cloudFrontUrl,
+          createdAt: new Date(item.createdAt).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          updatedAt: new Date(item.updatedAt).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }),
+          cloudfrontUrl,
           extension: media?.extension,
           title: item.title,
         };
@@ -304,5 +432,16 @@ export class BrowserService {
     }
 
     return { data, nextCursor, hasMore };
+  }
+
+  /**
+   * Get tags associated with a content item for a user based on the provided content ID.
+   * @param userId User ID of the user
+   * @param contentId Content ID of the content item for which associated tags are to be retrieved
+   * @returns Returns an array of tag objects with id and name fields that are associated with the specified content item for the user.
+   */
+  static async getContentTags(userId: string, contentId: string) {
+    const result = await BrowserRepository.getTagsByConentId(userId, contentId);
+    return result.map((item) => item.tag);
   }
 }

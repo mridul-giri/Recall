@@ -12,7 +12,7 @@ async function generateAccountLinkToken(req: NextRequest) {
 
   const deepLink = `https://t.me/TheRecallBot?start=${token}`;
 
-  return NextResponse.json(deepLink);
+  return NextResponse.json({ data: deepLink }, { status: 200 });
 }
 
 export const POST = withErrorHandler(generateAccountLinkToken);

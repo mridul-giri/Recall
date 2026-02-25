@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
+import "@repo/ui/globals.css";
+import { Toaster } from "@repo/ui";
+import { Winky_Rough } from "next/font/google";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+const averia = Winky_Rough({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-averia",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +23,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${averia.className} primary-bg`}>
+        <Toaster />
         {children}
       </body>
     </html>

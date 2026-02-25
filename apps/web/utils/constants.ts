@@ -35,3 +35,10 @@ export const WebReplies = {
   TAG_NAME_REQUIRED: "tagName is required and must be a string",
   EXTENSION_REQUIRED: "Extension is required",
 };
+
+export const ContentType = {
+  link: "link",
+  image: "image",
+  video: "video",
+  document: "document",
+};

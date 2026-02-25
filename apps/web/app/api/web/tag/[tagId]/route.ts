@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../../utils/getCurrentUser";
 import { ApiError } from "../../../../../utils/customError";
-import { WebReplies } from "../../../../../utils/constants";
 import { withErrorHandler } from "../../../../../utils/withErrorhandler";
 import { BrowserService } from "../../../../../services/browserService";
+import { updateTagSchema } from "../../../../../lib/schemas";
 
 async function deleteTag(
   req: NextRequest,
@@ -26,12 +26,9 @@ async function updateTag(
   const user = await getCurrentUser();
   if (!user?.id) throw new ApiError("Unauthorized user", 401);
 
-  const { tagName } = await req.json();
+  const body = await req.json();
+  const { tagName } = updateTagSchema.parse(body);
   const { tagId } = await params;
-
-  if (!tagName || typeof tagName !== "string") {
-    throw new ApiError(WebReplies.TAG_NAME_REQUIRED, 400);
-  }
 
   const result = await BrowserService.updateTag(user.id, tagId, tagName);
 

@@ -91,6 +91,8 @@ export class TelegramRepository {
     contentType: ContentType,
     fileSize: number,
     extension: string,
+    width: any,
+    height: any,
   ) {
     return await prisma.content.create({
       data: {
@@ -100,6 +102,8 @@ export class TelegramRepository {
           create: {
             size: fileSize,
             extension,
+            width,
+            height,
           },
         },
       },

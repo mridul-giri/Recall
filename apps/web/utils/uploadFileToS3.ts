@@ -18,6 +18,7 @@ export const uploadFileToS3 = async (
       Key: key,
       Body: fileBuffer,
       ContentType: mediaType,
+      ContentDisposition: `attachment; filename=recall"`,
     }),
   );
 };

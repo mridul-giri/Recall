@@ -10,13 +10,22 @@ const processImageJob = async (ctx: Context) => {
     throw new BotError(BotReplies.UNEXPECTED_ERROR, "Missing required context");
   }
   const photo = ctx.message.photo;
-  const imageSize = photo[photo.length - 1]?.file_size;
+  const largestPhoto = photo[photo.length - 1];
+  if (!largestPhoto) {
+    throw new BotError(BotReplies.IMAGE_SAVE_FAILED, "photo is undefined");
+  }
+
+  const imageSize = largestPhoto.file_size;
+  const width = largestPhoto.width;
+  const height = largestPhoto.height;
+
   if (!imageSize) {
     throw new BotError(
       BotReplies.IMAGE_SAVE_FAILED,
       "photo.file_size is undefined",
     );
   }
+
   const sizeLimit = await compareSizeLimit(imageSize);
   if (!sizeLimit) {
     throw new BotError(BotReplies.MAX_FILE_SIZE, "File too large");
@@ -33,6 +42,8 @@ const processImageJob = async (ctx: Context) => {
       "x-file-size": fileSize,
       "x-telegram-id": ctx.from.id.toString(),
       "x-extension": extension,
+      "x-width": width,
+      "x-height": height,
     },
   });
 

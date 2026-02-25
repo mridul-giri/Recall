@@ -3,12 +3,14 @@ import { ApiError } from "../../../../utils/customError";
 import { TelegramService } from "../../../../services/telegramService";
 import { withErrorHandler } from "../../../../utils/withErrorhandler";
 import { Replies } from "../../../../utils/constants";
+import { linkSchema } from "../../../../lib/schemas";
 
 async function createLinkContent(req: NextRequest) {
   const requestOrigin = req.headers.get("x-request-origin");
   if (requestOrigin !== "internal") throw new ApiError("Forbidden", 403);
 
-  const { telegramId, entities, text } = await req.json();
+  const body = await req.json();
+  const { telegramId, entities, text } = linkSchema.parse(body);
   const providerId = telegramId;
 
   const contentWithLinkData = await TelegramService.createLinkForUser(

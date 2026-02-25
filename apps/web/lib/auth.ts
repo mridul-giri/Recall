@@ -1,8 +1,17 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { config } from "../utils/config";
-import { IdentityType, prisma } from "@repo/db";
+import { IdentityType } from "@repo/db";
 import { cookies } from "next/headers";
+import {
+  findUserById,
+  findActiveStatusByUserId,
+  findIdentityByProvider,
+  createIdentity,
+  createUserWithIdentity,
+  updateUserProfile,
+  markLinkTokenUsed,
+} from "./authRepository";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -28,89 +37,56 @@ export const authOptions: NextAuthOptions = {
       if (!account) return false;
 
       if (tokenId && userId) {
-        const existingUser = await prisma.user.findUnique({
-          where: {
-            id: userId,
-          },
-        });
+        const existingUser = await findUserById(userId);
         if (!existingUser) return false;
 
-        const existingIdentity = await prisma.identity.findFirst({
-          where: {
-            provider: IdentityType.google,
-            providerId: account.providerAccountId,
-          },
-        });
+        const existingIdentity = await findIdentityByProvider(
+          IdentityType.google,
+          account.providerAccountId,
+        );
         if (existingIdentity) return false;
 
-        await prisma.identity.create({
-          data: {
-            provider: IdentityType.google,
-            providerId: account.providerAccountId,
-            userId,
-          },
+        await createIdentity(
+          IdentityType.google,
+          account.providerAccountId,
+          userId,
+        );
+
+        await updateUserProfile(userId, {
+          name: user.name,
+          email: user.email,
         });
 
-        await prisma.user.update({
-          where: {
-            id: userId,
-          },
-          data: {
-            name: user.name,
-            email: user.email,
-          },
-        });
-
-        await prisma.linkToken.update({
-          where: {
-            id: tokenId,
-          },
-          data: {
-            isUsed: true,
-          },
-        });
+        await markLinkTokenUsed(tokenId);
 
         cookieStore.delete("linkingSession");
         return true;
       }
 
-      const existingIdentity = await prisma.identity.findFirst({
-        where: {
-          provider: IdentityType.google,
-          providerId: account.providerAccountId,
-        },
-      });
+      const existingIdentity = await findIdentityByProvider(
+        IdentityType.google,
+        account.providerAccountId,
+      );
       if (existingIdentity) return true;
 
-      await prisma.user.create({
-        data: {
-          name: user.name,
-          email: user.email,
-          identities: {
-            create: {
-              provider: IdentityType.google,
-              providerId: account.providerAccountId,
-            },
-          },
-        },
-      });
+      await createUserWithIdentity(
+        user.name,
+        user.email,
+        IdentityType.google,
+        account.providerAccountId,
+      );
 
       return true;
     },
     async jwt({ token, account }) {
       if (account) {
-        const identity = await prisma.identity.findFirst({
-          where: {
-            provider: IdentityType.google,
-            providerId: account.providerAccountId,
-          },
-        });
+        const identity = await findIdentityByProvider(
+          IdentityType.google,
+          account.providerAccountId,
+        );
 
         if (identity) {
-          const dbUser = await prisma.user.findUnique({
-            where: { id: identity?.userId },
-            select: { isActive: true },
-          });
+          const dbUser = await findActiveStatusByUserId(identity.userId);
           if (!dbUser || dbUser.isActive == false) {
             return {};
           }
@@ -119,11 +95,8 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      if (token.userId) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.userId },
-          select: { isActive: true },
-        });
+      if (token.userId && typeof token.userId === "string") {
+        const dbUser = await findActiveStatusByUserId(token.userId);
         if (!dbUser || dbUser.isActive == false) {
           return {};
         }
@@ -138,7 +111,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  // pages: {
-  //   signIn: "/auth/register",
-  // },
+  pages: {
+    signIn: "/auth/register",
+  },
 };

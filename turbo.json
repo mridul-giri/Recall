@@ -1,5 +1,23 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
+  "globalEnv": [
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "NEXTAUTH_SECRET",
+    "NEXTAUTH_URL",
+    "ACCESS_KEY",
+    "SECRET_ACCESS_KEY",
+    "BUCKET_REGION",
+    "BUCKET_KEY",
+    "BUCKET_NAME",
+    "CLIENT_URL",
+    "DISTRIBUTION_DOMAIN",
+    "DISTRIBUTION_ID",
+    "CLOUD_FRONT_KEYPAIR_ID",
+    "CLOUD_FRONT_PRIVATE_KEY"
+  ],
   "ui": "tui",
   "tasks": {
     "build": {

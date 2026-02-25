@@ -2,18 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "../../../../utils/getCurrentUser";
 import { ApiError } from "../../../../utils/customError";
 import { withErrorHandler } from "../../../../utils/withErrorhandler";
-import { WebReplies } from "../../../../utils/constants";
 import { BrowserService } from "../../../../services/browserService";
+import { createTagSchema } from "../../../../lib/schemas";
 
 async function addTag(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user?.id) throw new ApiError("Unauthorized user", 401);
 
-  const { tagName } = await req.json();
-
-  if (!tagName || typeof tagName !== "string") {
-    throw new ApiError(WebReplies.TAG_NAME_REQUIRED, 400);
-  }
+  const body = await req.json();
+  const { tagName } = createTagSchema.parse(body);
 
   const tag = await BrowserService.createTag(user.id, tagName);
 
