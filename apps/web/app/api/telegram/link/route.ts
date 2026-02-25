@@ -13,6 +13,8 @@ async function createLinkContent(req: NextRequest) {
   const { telegramId, entities, text } = linkSchema.parse(body);
   const providerId = telegramId;
 
+  console.log(`[LINK] providerId=${providerId}`);
+
   const contentWithLinkData = await TelegramService.createLinkForUser(
     providerId,
     entities,
