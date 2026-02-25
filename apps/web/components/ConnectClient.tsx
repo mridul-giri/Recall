@@ -9,9 +9,7 @@ import { getErrorMessage } from "../utils/getErrorMessage";
 export const ConnectClient = ({ token }: any) => {
   const validateToken = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:3000/api/web/validate-token?token=${token}`,
-      );
+      const res = await axios.get(`/api/web/validate-token?token=${token}`);
       if (res.data.status == 200) {
         redirect("/auth/register");
       }
