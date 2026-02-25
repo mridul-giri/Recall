@@ -1,21 +1,22 @@
 "use client";
 import axios from "axios";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { Spinner } from "@repo/ui";
 import { getErrorMessage } from "../utils/getErrorMessage";
 
 export const ConnectClient = ({ token }: any) => {
+  const router = useRouter();
   const validateToken = async () => {
     try {
       const res = await axios.get(`/api/web/validate-token?token=${token}`);
       if (res.data.status == 200) {
-        redirect("/auth/register");
+        router.push("/auth/register");
       }
     } catch (error) {
       toast.warning(getErrorMessage(error), { position: "top-center" });
-      redirect("/");
+      router.push("/");
     }
   };
 
