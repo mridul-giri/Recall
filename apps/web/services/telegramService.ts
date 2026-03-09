@@ -258,7 +258,7 @@ export class TelegramService {
     if (existingIdentity)
       throw new ApiError(Replies.TELEGRAM_ALREADY_LINKED, 400);
 
-    const identity = TelegramRepository.attachTelegramIdentityToUser(
+    const identity = await TelegramRepository.attachTelegramIdentityToUser(
       linkTokenRecord.userId,
       IdentityType.telegram,
       providerId,
